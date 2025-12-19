@@ -65,8 +65,8 @@ export default function RegisterStep2() {
       // Clear session storage
       sessionStorage.removeItem("registerData");
 
-      // Redirect to login on success
-      router.push("/login");
+      // Redirect to home on success
+      router.push("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {

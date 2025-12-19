@@ -29,7 +29,7 @@ export function PrimaryButton({
     <Button
       disabled={isLoading || disabled}
       className={cn(
-        "py-3 bg-white hover:bg-amber-50 text-gray-800 font-medium rounded-full border-2 border-amber-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
+        "py-3 bg-white hover:bg-[#febb00] hover:cursor-pointer text-gray-800 font-medium rounded-full border-2 border-amber-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
         fullWidth && "w-full",
         className
       )}

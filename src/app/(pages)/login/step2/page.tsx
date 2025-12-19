@@ -44,9 +44,8 @@ export default function LoginStep2() {
       // Clear session storage
       sessionStorage.removeItem("loginPhone");
 
-      // Redirect to dashboard/home on success
-      // router.push("/dashboard");
-      console.log("Login successful!");
+      // Redirect to home on success
+      router.push("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code");
     } finally {
