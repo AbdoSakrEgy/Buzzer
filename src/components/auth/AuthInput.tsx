@@ -7,10 +7,6 @@ interface AuthInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 
-/**
- * AuthInput - Styled input field for authentication forms
- * Matches the UI design with light gray border and rounded corners
- */
 export const AuthInput = React.forwardRef<HTMLInputElement, AuthInputProps>(
   ({ className, label, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");

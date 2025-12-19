@@ -90,6 +90,7 @@ export default function RegisterStep1() {
             <option value="" disabled>
               Type
             </option>
+            <option value="admin">Admin</option>
             <option value="customer">Customer</option>
             <option value="cafe">Cafe</option>
             <option value="restaurant">Restaurant</option>

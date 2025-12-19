@@ -3,13 +3,15 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:3000/api/v1";
 
 // Type definitions
+export type UserType = "admin" | "customer" | "cafe" | "restaurant";
+
 export interface LoginRequest {
-  type: "customer" | "cafe" | "restaurant";
+  type: UserType;
   phone: string;
 }
 
 export interface RegisterRequest {
-  type: "customer" | "cafe" | "restaurant";
+  type: UserType;
   fullName: string;
   email: string;
   phone: string;
@@ -77,6 +79,47 @@ export const authApi = {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || "Registration failed");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Upload Profile Image
+   * Uploads profile picture based on user type
+   */
+  uploadProfileImage: async (
+    type: UserType,
+    file: File
+  ): Promise<{ success: boolean; imageKey?: string; message?: string }> => {
+    // Determine the correct API endpoint based on user type
+    const endpointMap: Record<UserType, string> = {
+      admin: `${API_BASE_URL}/admin/upload-profile-image`,
+      customer: `${API_BASE_URL}/customer/upload-profile-image`,
+      cafe: `${API_BASE_URL}/cafe/upload-profile-image`,
+      restaurant: `${API_BASE_URL}/restaurant/upload-profile-image`,
+    };
+
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    try {
+      const response = await axios.post(endpointMap[type], formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      // API returns: { status, message, data: { Key } }
+      return {
+        success: true,
+        imageKey: response.data.data?.Key,
+        message: response.data.message,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message || "Failed to upload image"
+        );
       }
       throw error;
     }

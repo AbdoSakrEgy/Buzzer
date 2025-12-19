@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthLayout, AuthInput, ImageUpload } from "@/src/components/auth";
+import { ArrowLeft } from "lucide-react";
+import { AuthLayout, AuthInput } from "@/src/components/auth";
 import { PrimaryButton } from "@/src/components/common";
 import { authApi, RegisterRequest } from "@/src/services/auth.api";
 
@@ -14,7 +15,6 @@ export default function RegisterStep2() {
     address: "",
     city: "",
   });
-  const [images, setImages] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -57,8 +57,6 @@ export default function RegisterStep2() {
         ...step1Data,
         address: formData.address,
         city: formData.city,
-        // Note: Image upload would typically be handled separately
-        // or converted to base64/uploaded to cloud storage
       };
 
       // Call register API
@@ -81,6 +79,16 @@ export default function RegisterStep2() {
       imageSrc="/register/register2 img.png"
       imageAlt="Register Illustration"
     >
+      {/* Back Arrow */}
+      <button
+        type="button"
+        onClick={() => router.push("/register/step1")}
+        className="mb-4 p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
+        aria-label="Go back to step 1"
+      >
+        <ArrowLeft className="w-5 h-5 text-gray-600" />
+      </button>
+
       <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">
         Register As Cafe/Restaurant
       </h1>
@@ -102,14 +110,6 @@ export default function RegisterStep2() {
           onChange={handleChange}
           placeholder="City"
         />
-
-        <div className="pt-2">
-          <ImageUpload
-            images={images}
-            onImagesChange={setImages}
-            maxImages={2}
-          />
-        </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
