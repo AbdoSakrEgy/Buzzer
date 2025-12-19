@@ -1,5 +1,4 @@
-// Common reusable components
-// Import all common components from this barrel file
-
-export { PrimaryButton } from "./PrimaryButton";
-export { DecorativeLine } from "./DecorativeLine";
+export { default as PrimaryButton } from "./PrimaryButton";
+export { default as DecorativeLine } from "./DecorativeLine";
+export { default as RestaurantCard } from "./RestaurantCard";
+export { default as MapComponent } from "./MapComponent";
