@@ -15,6 +15,8 @@ export interface RegisterRequest {
   email: string;
   phone: string;
   password: string;
+  address?: string;
+  city?: string;
 }
 
 export interface AuthTokens {

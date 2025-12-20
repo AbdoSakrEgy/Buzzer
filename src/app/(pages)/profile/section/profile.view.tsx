@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { User, ChevronRight } from "lucide-react";
+import { User, ChevronRight, LogOut } from "lucide-react";
 import { useAuth } from "@/src/context";
 import { useAuthFetch } from "@/src/hooks";
 import { API_BASE_URL } from "@/src/lib/config";
@@ -25,13 +26,28 @@ interface UserProfile {
 type TabType = "information" | "manage";
 
 export default function ProfileView() {
-  const { token, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const { token, isAuthenticated, logout } = useAuth();
   const authFetch = useAuthFetch();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   // Only show loading if user is authenticated (we need to fetch data)
   const [loading, setLoading] = useState(isAuthenticated && !!token);
   const [activeTab, setActiveTab] = useState<TabType>("information");
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // Handle logout
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.push("/home");
+    } catch (err) {
+      console.error("Logout failed", err);
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   // Fetch user profile
   useEffect(() => {
@@ -184,6 +200,18 @@ export default function ProfileView() {
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
             </Link>
           ))}
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="w-full flex items-center justify-between py-4 px-4 bg-white border border-red-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-colors group disabled:opacity-50"
+          >
+            <span className="text-red-600 font-medium">
+              {loggingOut ? "Logging out..." : "Logout"}
+            </span>
+            <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" />
+          </button>
         </div>
       )}
     </section>

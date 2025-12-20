@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthLayout, AuthInput } from "@/src/components/auth";
 import { PrimaryButton } from "@/src/components/common";
+import { initRecaptcha, sendOTP, formatPhoneNumber } from "@/src/lib/firebase";
 
 export default function RegisterStep1() {
   const router = useRouter();
@@ -16,6 +17,22 @@ export default function RegisterStep1() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaInitialized, setRecaptchaInitialized] = useState(false);
+
+  // Initialize reCAPTCHA on component mount
+  useEffect(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      try {
+        initRecaptcha("next-button");
+        setRecaptchaInitialized(true);
+      } catch (err) {
+        console.error("Failed to initialize reCAPTCHA:", err);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -41,21 +58,34 @@ export default function RegisterStep1() {
         throw new Error("Please fill in all fields");
       }
 
-      // ============================================
-      // 🔥 FIREBASE OTP INTEGRATION POINT
-      // Add Firebase phone authentication here:
-      // 1. Initialize Firebase RecaptchaVerifier
-      // 2. Call signInWithPhoneNumber(auth, formData.phone, recaptchaVerifier)
-      // 3. Store confirmation result for verification in step2
-      // ============================================
+      if (!recaptchaInitialized) {
+        throw new Error("Please wait for security check to complete");
+      }
+
+      // Format phone number to E.164 format (e.g., +201234567890)
+      const formattedPhone = formatPhoneNumber(formData.phone);
+
+      // Send OTP to phone
+      await sendOTP(formattedPhone);
 
       // Store form data in sessionStorage for step2
-      sessionStorage.setItem("registerData", JSON.stringify(formData));
+      sessionStorage.setItem(
+        "registerData",
+        JSON.stringify({
+          ...formData,
+          phone: formattedPhone, // Store formatted phone
+        })
+      );
 
-      // Navigate to step2
+      // Navigate to step2 for OTP verification
       router.push("/register/step2");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      console.error("OTP send error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to send OTP. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +150,7 @@ export default function RegisterStep1() {
           type="tel"
           value={formData.phone}
           onChange={handleChange}
-          placeholder="Phone Number"
+          placeholder="Phone Number (e.g., 01234567890)"
           required
         />
 
@@ -138,14 +168,21 @@ export default function RegisterStep1() {
 
         <div className="pt-4">
           <PrimaryButton
+            id="next-button"
             type="submit"
             isLoading={isLoading}
-            loadingText="Processing..."
+            loadingText="Sending OTP..."
           >
             Next
           </PrimaryButton>
         </div>
       </form>
+
+      {/* reCAPTCHA notice */}
+      <p className="text-xs text-gray-400 mt-4 text-center">
+        This site is protected by reCAPTCHA and the Google Privacy Policy
+        applies.
+      </p>
     </AuthLayout>
   );
 }
