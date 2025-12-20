@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { PrimaryButton } from "@/src/components/common";
 import { API_BASE_URL } from "@/src/lib/config";
 import { Product } from "@/src/types/product.types";
-import { useAuth } from "@/src/context";
+import { useAuth, useCart } from "@/src/context";
 
 interface RateCardProps {
   productId: string;
@@ -12,6 +12,7 @@ interface RateCardProps {
 
 export default function RateCard({ productId }: RateCardProps) {
   const { token, isAuthenticated } = useAuth();
+  const { incrementCartCount } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -81,6 +82,8 @@ export default function RateCard({ productId }: RateCardProps) {
 
       if (res.ok) {
         setCartMessage(`Added ${quantity} to basket!`);
+        // Sync cart badge count
+        incrementCartCount(quantity);
         setTimeout(() => setCartMessage(null), 3000);
       } else {
         setCartMessage(data.message || "Failed to add");

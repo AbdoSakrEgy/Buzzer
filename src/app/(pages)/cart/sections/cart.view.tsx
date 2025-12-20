@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Star, Trash2 } from "lucide-react";
-import { useAuth } from "@/src/context";
+import { useAuth, useCart } from "@/src/context";
+import { useAuthFetch } from "@/src/hooks";
 import { API_BASE_URL } from "@/src/lib/config";
 
 interface CartItem {
@@ -38,6 +39,8 @@ interface CartResponse {
 
 export default function CartView() {
   const { token, isAuthenticated } = useAuth();
+  const { decrementCartCount } = useCart();
+  const authFetch = useAuthFetch();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   // Only start in loading state if user is authenticated
   const [loading, setLoading] = useState(isAuthenticated && !!token);
@@ -55,8 +58,7 @@ export default function CartView() {
 
     const controller = new AbortController();
 
-    fetch(`${API_BASE_URL}/cart/get-cart`, {
-      headers: { Authorization: `Bearer ${token}` },
+    authFetch(`${API_BASE_URL}/cart/get-cart`, {
       signal: controller.signal,
     })
       .then((res) => res.json())
@@ -72,7 +74,7 @@ export default function CartView() {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, authFetch]);
 
   // Fetch product images using /auth/get-file/{public_id}
   useEffect(() => {
@@ -87,11 +89,8 @@ export default function CartView() {
           if (!publicId) return;
 
           try {
-            const res = await fetch(
-              `${API_BASE_URL}/auth/get-file/${publicId}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
+            const res = await authFetch(
+              `${API_BASE_URL}/auth/get-file/${publicId}`
             );
             if (res.ok) {
               const data = await res.json();
@@ -110,19 +109,28 @@ export default function CartView() {
     };
 
     fetchImages();
-  }, [cartItems, token]);
+  }, [cartItems, token, authFetch]);
 
   // Delete item
   const handleDeleteItem = async (itemId: number) => {
     if (!token) return;
 
+    // Find the item to get its quantity before deletion
+    const itemToDelete = cartItems.find((item) => item.id === itemId);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/cart/delete-item/${itemId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authFetch(
+        `${API_BASE_URL}/cart/delete-item/${itemId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (res.ok) {
         setCartItems((prev) => prev.filter((item) => item.id !== itemId));
+        // Sync cart count with navbar badge
+        if (itemToDelete) {
+          decrementCartCount(itemToDelete.quantity);
+        }
       }
     } catch (err) {
       console.error("Failed to delete item", err);
@@ -135,11 +143,10 @@ export default function CartView() {
 
     setPlacingOrder(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/payment/pay-with-stripe`, {
+      const res = await authFetch(`${API_BASE_URL}/payment/pay-with-stripe`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           userCoupons: couponCode ? [couponCode] : [],

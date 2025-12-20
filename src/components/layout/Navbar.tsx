@@ -4,15 +4,22 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Menu, X, User, ShoppingCart, LogIn, UserPlus } from "lucide-react";
-import { useAuth } from "@/src/context";
-import { API_BASE_URL } from "@/src/lib/config";
+import {
+  Menu,
+  X,
+  User,
+  ShoppingCart,
+  LogIn,
+  UserPlus,
+  ClipboardList,
+} from "lucide-react";
+import { useAuth, useCart } from "@/src/context";
 
 export function Navbar() {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { cartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
 
   // Handle scroll to change navbar background
@@ -24,34 +31,6 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // Fetch cart count for customers
-  useEffect(() => {
-    if (!isAuthenticated || !token) return;
-
-    const controller = new AbortController();
-
-    fetch(`${API_BASE_URL}/cart/get-cart`, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: controller.signal,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const items = data.data?.cartItems || [];
-        const count = items.reduce(
-          (sum: number, item: { quantity: number }) => sum + item.quantity,
-          0
-        );
-        setCartCount(count);
-      })
-      .catch((err) => {
-        if (err.name !== "AbortError") {
-          console.error("Failed to fetch cart count", err);
-        }
-      });
-
-    return () => controller.abort();
-  }, [isAuthenticated, token]);
 
   const navLinks = [
     { label: "Home", href: "/home" },
@@ -70,11 +49,14 @@ export function Navbar() {
         : "text-white hover:text-amber-400"
     }`;
 
-  const iconClasses = `p-2 rounded-full transition-colors ${
-    isScrolled
-      ? "text-gray-600 hover:text-amber-500"
-      : "text-white hover:text-amber-400"
-  }`;
+  const iconClasses = (isActive: boolean) =>
+    `p-2 rounded-full transition-colors ${
+      isActive
+        ? "text-amber-500"
+        : isScrolled
+        ? "text-gray-600 hover:text-amber-500"
+        : "text-white hover:text-amber-400"
+    }`;
 
   return (
     <nav
@@ -118,10 +100,18 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
+                {/* Orders History Icon */}
+                <Link
+                  href="/orders-history"
+                  className={iconClasses(pathname === "/orders-history")}
+                  aria-label="Orders History"
+                >
+                  <ClipboardList size={22} />
+                </Link>
                 {/* Cart Icon with Badge */}
                 <Link
                   href="/cart"
-                  className={`${iconClasses} relative`}
+                  className={`${iconClasses(pathname === "/cart")} relative`}
                   aria-label="Cart"
                 >
                   <ShoppingCart size={22} />
@@ -134,7 +124,7 @@ export function Navbar() {
                 {/* Profile Icon */}
                 <Link
                   href="/profile"
-                  className={iconClasses}
+                  className={iconClasses(pathname === "/profile")}
                   aria-label="Profile"
                 >
                   <User size={22} />
@@ -209,8 +199,24 @@ export function Navbar() {
               {isAuthenticated ? (
                 <>
                   <Link
+                    href="/orders-history"
+                    className={`flex items-center gap-2 py-2 transition-colors font-medium ${
+                      pathname === "/orders-history"
+                        ? "text-amber-500"
+                        : "text-gray-600 hover:text-amber-500"
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ClipboardList size={20} />
+                    Orders History
+                  </Link>
+                  <Link
                     href="/cart"
-                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
+                    className={`flex items-center gap-2 py-2 transition-colors font-medium ${
+                      pathname === "/cart"
+                        ? "text-amber-500"
+                        : "text-gray-600 hover:text-amber-500"
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <ShoppingCart size={20} />
@@ -218,7 +224,11 @@ export function Navbar() {
                   </Link>
                   <Link
                     href="/profile"
-                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
+                    className={`flex items-center gap-2 py-2 transition-colors font-medium ${
+                      pathname === "/profile"
+                        ? "text-amber-500"
+                        : "text-gray-600 hover:text-amber-500"
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User size={20} />
