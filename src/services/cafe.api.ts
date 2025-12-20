@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const API_BASE_URL = "http://localhost:3000/api/v1";
+import { API_BASE_URL } from "@/src/lib/config";
 
 // Type definitions
 export interface Cafe {
@@ -10,7 +9,6 @@ export interface Cafe {
   email: string;
   isActive: boolean;
   profileImage_public_id: string | null;
-  profileImage_secure_url: string | null;
 }
 
 export interface CafesResponse {

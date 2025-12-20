@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Menu, X, User, Bell } from "lucide-react";
 
@@ -12,6 +13,7 @@ interface NavbarProps {
 export function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
 
   // Handle scroll to change navbar background
   useEffect(() => {
@@ -25,6 +27,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
 
   const navLinks = [
     { label: "Home", href: "/home" },
+    { label: "Restaurants", href: "/restaurant" },
     { label: "Products", href: "/products" },
     { label: "About Us", href: "/about" },
     { label: "Contact US", href: "/contact" },
@@ -51,21 +54,27 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
 
           {/* Desktop Navigation - Centered */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link, index) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={`transition-colors font-medium ${
-                  index === 0
-                    ? "text-amber-500"
-                    : isScrolled
-                    ? "text-gray-600 hover:text-amber-500"
-                    : "text-white hover:text-amber-400"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                (pathname.startsWith(link.href) && link.href !== "/home");
+
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`transition-colors font-medium ${
+                    isActive
+                      ? "text-amber-500"
+                      : isScrolled
+                      ? "text-gray-600 hover:text-amber-500"
+                      : "text-white hover:text-amber-400"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right Side Icons - Desktop */}
@@ -92,30 +101,23 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
             >
               <Bell size={22} />
             </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Hidden if no links */}
+          {navLinks.length > 0 && (
             <button
-              className={`p-2 transition-colors ${
+              className={`md:hidden p-2 transition-colors ${
                 isScrolled
                   ? "text-gray-600 hover:text-amber-500"
                   : "text-white hover:text-amber-400"
               }`}
-              aria-label="Menu"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
             >
-              <Menu size={22} />
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className={`md:hidden p-2 transition-colors ${
-              isScrolled
-                ? "text-gray-600 hover:text-amber-500"
-                : "text-white hover:text-amber-400"
-            }`}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          )}
         </div>
       </div>
 
@@ -123,16 +125,26 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
           <div className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="block py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                (pathname.startsWith(link.href) && link.href !== "/home");
+
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`block py-2 transition-colors font-medium ${
+                    isActive
+                      ? "text-amber-500"
+                      : "text-gray-600 hover:text-amber-500"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <div className="border-t border-gray-100 pt-4 mt-4 space-y-3">
               <Link
                 href={isLoggedIn ? "/profile" : "/login"}

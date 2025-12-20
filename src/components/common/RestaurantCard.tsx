@@ -7,7 +7,7 @@ interface RestaurantCardProps {
   imageUrl?: string;
   hasPublicId: boolean;
   category: "Restaurant" | "Cafe" | string;
-  city: string;
+  city?: string;
   isActive: boolean;
   className?: string; // for custom sizing if needed
 }
@@ -18,7 +18,7 @@ export default function RestaurantCard({
   imageUrl,
   hasPublicId,
   category,
-  city,
+  city = "Cairo",
   isActive,
   className = "w-70",
 }: RestaurantCardProps) {

@@ -29,8 +29,20 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-gray-900 text-white" id="contact">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <footer
+      className="relative bg-black text-white overflow-hidden"
+      id="contact"
+    >
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0 opacity-20">
+        <Image
+          src="/footer/footer.png"
+          alt="Footer Background"
+          fill
+          className="object-cover"
+        />
+      </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
@@ -94,7 +106,7 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin size={20} className="text-amber-400 mt-0.5 shrink-0" />
                 <span className="text-gray-400 text-sm">
-                  123 Business Street, Dubai, UAE
+                  123 Business Street, Cairo, Egypt
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -103,16 +115,16 @@ export function Footer() {
                   href="tel:+971123456789"
                   className="text-gray-400 hover:text-amber-400 transition-colors text-sm"
                 >
-                  +971 12 345 6789
+                  +201 00 713 7667
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={20} className="text-amber-400 shrink-0" />
                 <a
-                  href="mailto:info@buzzerapp.com"
+                  href="mailto:abdulrahimsakr01@gmail.com"
                   className="text-gray-400 hover:text-amber-400 transition-colors text-sm"
                 >
-                  info@buzzerapp.com
+                  abdulrahimsakr01@gmail.com
                 </a>
               </li>
             </ul>

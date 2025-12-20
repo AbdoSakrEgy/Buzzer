@@ -34,11 +34,14 @@ export default function NearestRestaurantSection({
           });
         },
         (error) => {
-          console.error(
-            `Error fetching location (Code ${error.code}):`,
-            error.message
-          );
-          // Common codes: 1 = Permission Denied, 2 = Position Unavailable, 3 = Timeout
+          if (error.code === 2) {
+            console.warn("Location unavailable (using default map center).");
+          } else {
+            console.error(
+              `Error fetching location (Code ${error.code}):`,
+              error.message
+            );
+          }
         }
       );
     }
