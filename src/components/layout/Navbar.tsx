@@ -15,12 +15,19 @@ export function Navbar() {
   const pathname = usePathname();
 
   // Handle scroll to change navbar background
-  // Always show scrolled state on /profile and /profile-edit routes
+  // Always show scrolled state on certain routes
   useEffect(() => {
     const handleScroll = () => {
-      const isProfileRoute =
-        pathname === "/profile" || pathname === "/profile-edit";
-      setIsScrolled(isProfileRoute || window.scrollY > 50);
+      const alwaysScrolledRoutes = [
+        "/profile",
+        "/profile-edit",
+        "/orders-history",
+        "/orders-history/order-details",
+      ];
+      const isAlwaysScrolled = alwaysScrolledRoutes.some(
+        (route) => pathname === route || pathname.startsWith(route + "/")
+      );
+      setIsScrolled(isAlwaysScrolled || window.scrollY > 50);
     };
 
     // Set initial state

@@ -17,7 +17,7 @@ interface Order {
   id: number;
   customer_id: number;
   totalAmount: string;
-  status: "pending" | "processing" | "completed" | "cancelled";
+  status: "pending" | "paid" | "cancelled" | "refunded";
   payment_id: number | null;
 }
 
@@ -29,19 +29,12 @@ const statusConfig = {
     borderColor: "border-amber-200",
     label: "Pending",
   },
-  processing: {
-    icon: AlertCircle,
-    color: "text-blue-500",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-    label: "Processing",
-  },
-  completed: {
+  paid: {
     icon: CheckCircle,
     color: "text-green-500",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
-    label: "Completed",
+    label: "Paid",
   },
   cancelled: {
     icon: XCircle,
@@ -49,6 +42,13 @@ const statusConfig = {
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
     label: "Cancelled",
+  },
+  refunded: {
+    icon: AlertCircle,
+    color: "text-blue-500",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+    label: "Refunded",
   },
 };
 
@@ -69,6 +69,7 @@ export default function OrdersView() {
       .then((res) => res.json())
       .then((data) => {
         setOrders(data.data?.orders || []);
+        console.log({ data });
       })
       .catch((err) => {
         if (err.name !== "AbortError") {
@@ -134,9 +135,10 @@ export default function OrdersView() {
           const StatusIcon = status.icon;
 
           return (
-            <div
+            <Link
               key={order.id}
-              className={`bg-white border ${status.borderColor} rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow`}
+              href={`/orders-history/order-details/${order.id}`}
+              className={`block bg-white border ${status.borderColor} rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 {/* Order Info */}
@@ -172,7 +174,7 @@ export default function OrdersView() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
