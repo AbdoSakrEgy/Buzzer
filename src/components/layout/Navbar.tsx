@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Menu, X, User, Bell } from "lucide-react";
+import { Menu, X, User, ShoppingCart, LogIn, UserPlus } from "lucide-react";
+import { useAuth } from "@/src/context";
+import { API_BASE_URL } from "@/src/lib/config";
 
-interface NavbarProps {
-  isLoggedIn?: boolean;
-}
-
-export function Navbar({ isLoggedIn = false }: NavbarProps) {
+export function Navbar() {
+  const { isAuthenticated, token } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
 
   // Handle scroll to change navbar background
@@ -25,6 +25,34 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Fetch cart count for customers
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+
+    const controller = new AbortController();
+
+    fetch(`${API_BASE_URL}/cart/get-cart`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const items = data.data?.cartItems || [];
+        const count = items.reduce(
+          (sum: number, item: { quantity: number }) => sum + item.quantity,
+          0
+        );
+        setCartCount(count);
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Failed to fetch cart count", err);
+        }
+      });
+
+    return () => controller.abort();
+  }, [isAuthenticated, token]);
+
   const navLinks = [
     { label: "Home", href: "/home" },
     { label: "Restaurants", href: "/restaurant" },
@@ -32,6 +60,21 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
     { label: "About Us", href: "/about" },
     { label: "Contact US", href: "/contact" },
   ];
+
+  const linkClasses = (isActive: boolean) =>
+    `transition-colors font-medium ${
+      isActive
+        ? "text-amber-500"
+        : isScrolled
+        ? "text-gray-600 hover:text-amber-500"
+        : "text-white hover:text-amber-400"
+    }`;
+
+  const iconClasses = `p-2 rounded-full transition-colors ${
+    isScrolled
+      ? "text-gray-600 hover:text-amber-500"
+      : "text-white hover:text-amber-400"
+  }`;
 
   return (
     <nav
@@ -41,7 +84,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
-          {/* Logo - Only Image */}
+          {/* Logo */}
           <Link href="/home" className="flex items-center">
             <Image
               src="/logo.png"
@@ -52,7 +95,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
             />
           </Link>
 
-          {/* Desktop Navigation - Centered */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
               const isActive =
@@ -63,13 +106,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`transition-colors font-medium ${
-                    isActive
-                      ? "text-amber-500"
-                      : isScrolled
-                      ? "text-gray-600 hover:text-amber-500"
-                      : "text-white hover:text-amber-400"
-                  }`}
+                  className={linkClasses(isActive)}
                 >
                   {link.label}
                 </Link>
@@ -77,47 +114,70 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
             })}
           </div>
 
-          {/* Right Side Icons - Desktop */}
+          {/* Right Side - Auth Buttons or Icons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href={isLoggedIn ? "/profile" : "/login"}
-              className={`p-2 rounded-full transition-colors ${
-                isScrolled
-                  ? "text-gray-600 hover:text-amber-500"
-                  : "text-white hover:text-amber-400"
-              }`}
-              aria-label="Account"
-            >
-              <User size={22} />
-            </Link>
-            <Link
-              href="/cart"
-              className={`p-2 rounded-full transition-colors ${
-                isScrolled
-                  ? "text-gray-600 hover:text-amber-500"
-                  : "text-white hover:text-amber-400"
-              }`}
-              aria-label="Cart"
-            >
-              <Bell size={22} />
-            </Link>
+            {isAuthenticated ? (
+              <>
+                {/* Cart Icon with Badge */}
+                <Link
+                  href="/cart"
+                  className={`${iconClasses} relative`}
+                  aria-label="Cart"
+                >
+                  <ShoppingCart size={22} />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartCount > 99 ? "99+" : cartCount}
+                    </span>
+                  )}
+                </Link>
+                {/* Profile Icon */}
+                <Link
+                  href="/profile"
+                  className={iconClasses}
+                  aria-label="Profile"
+                >
+                  <User size={22} />
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Login Button */}
+                <Link
+                  href="/login"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors font-medium ${
+                    isScrolled
+                      ? "text-gray-600 hover:text-amber-500 border border-gray-200 hover:border-amber-400"
+                      : "text-white hover:text-amber-400 border border-white/30 hover:border-amber-400"
+                  }`}
+                >
+                  <LogIn size={18} />
+                  Login
+                </Link>
+                {/* Register Button */}
+                <Link
+                  href="/register"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 text-white font-medium hover:bg-amber-600 transition-colors"
+                >
+                  <UserPlus size={18} />
+                  Register
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
-          {/* Mobile Menu Button - Hidden if no links */}
-          {navLinks.length > 0 && (
-            <button
-              className={`md:hidden p-2 transition-colors ${
-                isScrolled
-                  ? "text-gray-600 hover:text-amber-500"
-                  : "text-white hover:text-amber-400"
-              }`}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          )}
+          <button
+            className={`md:hidden p-2 transition-colors ${
+              isScrolled
+                ? "text-gray-600 hover:text-amber-500"
+                : "text-white hover:text-amber-400"
+            }`}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
@@ -146,22 +206,45 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
               );
             })}
             <div className="border-t border-gray-100 pt-4 mt-4 space-y-3">
-              <Link
-                href={isLoggedIn ? "/profile" : "/login"}
-                className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <User size={20} />
-                {isLoggedIn ? "Profile" : "Login"}
-              </Link>
-              <Link
-                href="/cart"
-                className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Bell size={20} />
-                Cart
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/cart"
+                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ShoppingCart size={20} />
+                    Cart {cartCount > 0 && `(${cartCount})`}
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <User size={20} />
+                    Profile
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-amber-500 transition-colors font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <LogIn size={20} />
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="flex items-center gap-2 py-2 text-amber-500 font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <UserPlus size={20} />
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -171,7 +171,7 @@ export default function ProductView({ productId }: ProductViewProps) {
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full overflow-hidden bg-amber-100">
                     {/* Avatar placeholder - gradient background */}
-                    <div className="w-full h-full bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500" />
+                    <div className="w-full h-full from-amber-300 via-yellow-400 to-amber-500" />
                   </div>
                   <div>
                     <div className="font-bold text-gray-900 text-lg">Linda</div>
