@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { AuthLayout, AuthInput } from "@/src/components/auth";
 import { PrimaryButton } from "@/src/components/common";
 import { authApi } from "@/src/services/auth.api";
+import { useAuth } from "@/src/context";
 
 export default function LoginStep2() {
   const router = useRouter();
+  const { login } = useAuth();
   const [phone, setPhone] = useState("");
   const [loginCode, setLoginCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,24 +32,27 @@ export default function LoginStep2() {
     setIsLoading(true);
 
     try {
-      // Verify the login code
-      await authApi.verifyLoginCode(phone.replace(/\s/g, ""), loginCode);
+      // Get the user type from sessionStorage (set in step1)
+      const userType = (sessionStorage.getItem("loginUserType") ||
+        "customer") as "admin" | "customer" | "cafe" | "restaurant";
 
-      // ============================================
-      // 🔥 FIREBASE OTP VERIFICATION POINT
-      // Add Firebase OTP confirmation here:
-      // 1. Get the confirmation result from step1
-      // 2. Call confirmationResult.confirm(loginCode)
-      // 3. Handle successful login (store token, redirect)
-      // ============================================
+      // Call real login API
+      const tokens = await authApi.login({
+        type: userType,
+        phone: phone.replace(/\s/g, ""),
+      });
+
+      // Store tokens and fetch profile using new AuthContext login
+      await login(tokens);
 
       // Clear session storage
       sessionStorage.removeItem("loginPhone");
+      sessionStorage.removeItem("loginUserType");
 
       // Redirect to home on success
       router.push("/home");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid code");
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setIsLoading(false);
     }
