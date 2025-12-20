@@ -26,7 +26,7 @@ export default function PaymentResult() {
         </p>
 
         {/* Order Info Card */}
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 mb-8">
+        <div className="from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 mb-8">
           <div className="flex items-center justify-center gap-2 text-amber-600 mb-2">
             <Receipt size={20} />
             <span className="font-medium">Order Confirmed</span>

@@ -25,7 +25,7 @@ export default function PaymentResult() {
         </p>
 
         {/* Info Card */}
-        <div className="bg-gradient-to-br from-gray-50 to-slate-100 border border-gray-200 rounded-2xl p-6 mb-8">
+        <div className="from-gray-50 to-slate-100 border border-gray-200 rounded-2xl p-6 mb-8">
           <div className="flex items-center justify-center gap-2 text-gray-600 mb-2">
             <RefreshCw size={20} />
             <span className="font-medium">Want to try again?</span>

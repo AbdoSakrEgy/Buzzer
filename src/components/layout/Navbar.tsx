@@ -4,15 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import {
-  Menu,
-  X,
-  User,
-  ShoppingCart,
-  LogIn,
-  UserPlus,
-  ClipboardList,
-} from "lucide-react";
+import { Menu, X, User, ShoppingCart, LogIn, UserPlus } from "lucide-react";
 import { useAuth, useCart } from "@/src/context";
 
 export function Navbar() {
@@ -23,14 +15,20 @@ export function Navbar() {
   const pathname = usePathname();
 
   // Handle scroll to change navbar background
+  // Always show scrolled state on /profile and /profile-edit routes
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      const isProfileRoute =
+        pathname === "/profile" || pathname === "/profile-edit";
+      setIsScrolled(isProfileRoute || window.scrollY > 50);
     };
+
+    // Set initial state
+    handleScroll();
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [pathname]);
 
   const navLinks = [
     { label: "Home", href: "/home" },
@@ -100,14 +98,6 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                {/* Orders History Icon */}
-                <Link
-                  href="/orders-history"
-                  className={iconClasses(pathname === "/orders-history")}
-                  aria-label="Orders History"
-                >
-                  <ClipboardList size={22} />
-                </Link>
                 {/* Cart Icon with Badge */}
                 <Link
                   href="/cart"
@@ -198,18 +188,6 @@ export function Navbar() {
             <div className="border-t border-gray-100 pt-4 mt-4 space-y-3">
               {isAuthenticated ? (
                 <>
-                  <Link
-                    href="/orders-history"
-                    className={`flex items-center gap-2 py-2 transition-colors font-medium ${
-                      pathname === "/orders-history"
-                        ? "text-amber-500"
-                        : "text-gray-600 hover:text-amber-500"
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <ClipboardList size={20} />
-                    Orders History
-                  </Link>
                   <Link
                     href="/cart"
                     className={`flex items-center gap-2 py-2 transition-colors font-medium ${
